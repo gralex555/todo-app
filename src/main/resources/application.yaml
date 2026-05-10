@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: todo-app
+
+  jpa:
+    open-in-view: false
+
+  profiles:
+    active: dev
+
+server:
+  port: 8080
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}  # (7 дней)

@@ -1,0 +1,129 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-initial-schema
+      author: Gralex
+      changes:
+
+        # Создаём таблицу пользователей
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: username
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: email
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: password
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        # Создаём таблицу ролей пользователей
+        - createTable:
+            tableName: user_roles
+            columns:
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: role
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+
+        # Создаём таблицу задач
+        - createTable:
+            tableName: tasks
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: title
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: text
+              - column:
+                  name: completed
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        # Добавляем тестового пользователя
+        - insert:
+            tableName: users
+            columns:
+              - column:
+                  name: username
+                  value: "testuser"
+              - column:
+                  name: email
+                  value: "testuser@example.com"
+              - column:
+                  name: password
+                  value: "$2a$10$8K4Z5v6v7v8v9v0v1v2v3u4v5v6v7v8v9v0v1v2v3v4v5v6v7v8v9v0"  # пароль = "password"
+
+        # Добавляем роль тестовому пользователю
+        - insert:
+            tableName: user_roles
+            columns:
+              - column:
+                  name: user_id
+                  value: "1"
+              - column:
+                  name: role
+                  value: "ROLE_USER"
+
+        # Добавляем foreign key для tasks
+        - addForeignKeyConstraint:
+            baseTableName: tasks
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_task_user

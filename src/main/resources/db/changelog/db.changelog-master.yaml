@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - include:
+      file: changesets/001-initial-schema.yaml
+      relativeToChangelogFile: true
+
+  - include:
+      file: changesets/002-refresh-tokens.yaml
+      relativeToChangelogFile: true
+
+  - include:
+      file: changesets/003-create-audit-log.sql
+      relativeToChangelogFile: true
