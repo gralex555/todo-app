@@ -155,7 +155,7 @@ public class TaskServiceImpl implements TaskService {
 
 
 
-    private Pageable createPageable(int page, int size, String sort) {
+     Pageable createPageable(int page, int size, String sort) {
         // Значение по умолчанию: новые задачи сверху
         if (sort == null || sort.trim().isEmpty()) {
             sort = "createdAt,desc";

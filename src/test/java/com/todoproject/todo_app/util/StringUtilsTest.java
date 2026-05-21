@@ -1,102 +1,100 @@
 package com.todoproject.todo_app.util;
 
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+@DisplayName("Тесты класса StringUtils")
 public class StringUtilsTest {
 
-    @Test
-    void isBlankShouldReturnTrueWhenInputIsNull() {
-        String input  = null;
+    @Nested
+    @DisplayName("Метод isBlank")
+    class isBlankTests {
 
-        boolean result = StringUtils.isBlank(input);
-        assertTrue(result);
+        @ParameterizedTest
+        @DisplayName("возвращает true для null, пустой строки и пробелов")
+        @NullAndEmptySource
+        @ValueSource(strings = {"   ", "\t"})
+        void shouldReturnTrueForBlankInput(String input) {
+            assertThat(StringUtils.isBlank(input)).isTrue();
+        }
+
+        @ParameterizedTest
+        @DisplayName("возвращает false для непустых строк")
+        @ValueSource(strings = {"hello", "a", "Hello World", " text "})
+        void shouldReturnFalseForNonBlankInput(String input) {
+            assertThat(StringUtils.isBlank(input)).isFalse();
+        }
     }
 
-    @Test
-    void isBlankShouldReturnTrueWhenInputIsEmptyString() {
-        String input = "";
-        boolean result = StringUtils.isBlank(input);
-        assertTrue(result);
+    @Nested
+    @DisplayName("Метод capitalize")
+    class CapitalizeTests {
 
+        @ParameterizedTest
+        @DisplayName("возвращает тот же вход для null и пустой строки")
+        @NullAndEmptySource
+        void capitalizeShouldReturnSameValueWhenInputIsNullOrEmpty(String input) {
+
+            assertThat(StringUtils.capitalize(input)).isEqualTo(input);
+        }
+
+        @ParameterizedTest
+        @DisplayName("делает первую букву заглавной")
+        @CsvSource({
+                "hello, Hello",
+                "hello world, Hello world"
+        })
+        void capitalizeShouldWorkWithFirstLetter(String input, String expected) {
+            assertThat(StringUtils.capitalize(input)).isEqualTo(expected);
+
+        }
     }
 
-    @Test
-    void isBlankShouldReturnFalseWhenInputContainsText() {
-        String input = "hello";
-        boolean result = StringUtils.isBlank(input);
-        assertFalse(result);
-    }
+    @Nested
+    @DisplayName("Метод truncate")
+    class TruncateTests {
 
-    @Test
-    void capitalizeShouldMakeFirstLetterUppercaseWhenInputIsLowercase() {
-        String input = "hello";
-        String result = StringUtils.capitalize(input);
-        assertEquals("Hello", result);
-    }
+        @Test
+        @DisplayName("бросает исключение при null входе")
+        void truncateShouldThrowExceptionWhenTextIsNull() {
 
-    @Test
-    void capitalizeShouldOnlyChangeFirstLetterWhenInputHasMultipleWords() {
-        String input = "hello world";
-        String result = StringUtils.capitalize(input);
-        assertEquals("Hello world", result);
-    }
+//            assertThrows(IllegalArgumentException.class, () -> {
+//                StringUtils.truncate(null, 5);
+//            });
 
-    @Test
-    void capitalizeShouldReturnNullWhenInputIsNull() {
-        String input = null;
-        String result = StringUtils.capitalize(input);
-        assertNull(result);
-    }
+            assertThatThrownBy(() -> StringUtils.truncate(null, 5))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
 
-    @Test
-    void capitalizeShouldReturnEmptyStringWhenInputIsEmpty() {
-        String input = "";
-        String result = StringUtils.capitalize(input);
-        assertEquals("", result);
-    }
+        @Test
+        @DisplayName("бросает исключение при отрицательном maxLength")
+        void truncateShouldThrowExceptionWhenMaxLengthIsNegative() {
+//            assertThrows(IllegalArgumentException.class, () -> {
+//                StringUtils.truncate("hello", -1);
+//            });
+            assertThatThrownBy(() -> StringUtils.truncate("hello", -1))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
 
-    @Test
-    void truncateShouldThrowExceptionWhenTextIsNull() {
-
-        assertThrows(IllegalArgumentException.class, () -> {
-            StringUtils.truncate(null, 5);
-        });
-    }
-
-    @Test
-    void truncateShouldThrowExceptionWhenMaxLengthIsNegative() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            StringUtils.truncate("hello", -1);
-        });
-    }
-
-    @Test
-    void truncateShouldReturnSameTextWhenTextIsShorterThanMaxLength() {
-        String input = "hi";
-        int inputMaxLength = 10;
-
-        String result = StringUtils.truncate(input, inputMaxLength);
-        assertEquals("hi", result);
-
-    }
-
-    @Test
-    void truncateShouldTruncateAndAddEllipsisWhenTextIsLongerThanMaxLength() {
-        String input = "hello world";       // длина 11
-        int maxLength = 5;
-
-        String result = StringUtils.truncate(input, maxLength);
-        assertEquals("hello...", result);
-
-    }
-
-    @Test
-    void truncateShouldReturnSameTextWhenTextLengthEqualsMaxLength() {
-        String input = "hello";
-        int maxLength = 5;
-        String result = StringUtils.truncate(input, maxLength);
-        assertEquals("hello", result);
+        @ParameterizedTest
+        @DisplayName("возвращает корректно обрезанный или оригинальный текст")
+        @CsvSource({
+                "hi, 10, hi",
+                "hello world, 5, hello...",
+                "hello, 5, hello"
+        })
+        void truncateShouldReturnExpectedText(String input, int maxLength, String expected) {
+           // assertEquals(expected, StringUtils.truncate(input, maxLength));
+            assertThat(StringUtils.truncate(input, maxLength)).isEqualTo(expected);
+        }
     }
 
 }
