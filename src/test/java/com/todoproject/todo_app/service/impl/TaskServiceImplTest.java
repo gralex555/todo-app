@@ -179,4 +179,74 @@ class TaskServiceImplTest {
         }
     }
 
+    @Nested
+    @DisplayName("Метод delete")
+    class deleteTests {
+
+        @Test
+        @DisplayName("бросает TaskNotFoundException, когда задача не найдена")
+        void shouldThrowTaskNotFoundExceptionWhenTaskDoesNotExist() {
+            // given
+            Long nonExistentId = 999L;
+
+            when(userRepository.findByUsername("testuser"))
+                    .thenReturn(Optional.of(currentUser));
+            when(taskRepository.findById(nonExistentId))
+                    .thenReturn(Optional.empty());
+
+            // when & then
+            assertThatThrownBy(() -> taskService.delete(nonExistentId))
+                    .isInstanceOf(TaskNotFoundException.class);
+
+        }
+
+        @Test
+        @DisplayName("бросает AccessDeniedException, когда задача принадлежит другому пользователю")
+        void shouldThrowAccessDeniedExceptionWhenTaskIsNotCurrentUser() {
+            User taskOwner = new User();
+            taskOwner.setId(2L);
+            Long taskId = 2L;
+
+            Task task = new Task();
+            task.setId(taskId);
+            task.setTitle("Купить овощи");
+            task.setOwner(taskOwner);
+
+
+            when(taskRepository.findById(taskId))
+                    .thenReturn(Optional.of(task));
+            when(userRepository.findByUsername("testuser"))
+                    .thenReturn(Optional.of(currentUser));
+
+            assertThatThrownBy(() -> taskService.delete(taskId))
+                    .isInstanceOf(AccessDeniedException.class);
+        }
+
+        @Test
+        @DisplayName("удаляет задачу")
+        void shouldDeleteTask() {
+            // given
+            Long taskId = 2L;
+
+            Task task = new Task();
+            task.setId(taskId);
+            task.setTitle("Купить овощи");
+            task.setOwner(currentUser);
+
+            when(userRepository.findByUsername("testuser"))
+                    .thenReturn(Optional.of(currentUser));
+            when(taskRepository.findById(taskId))
+                    .thenReturn(Optional.of(task));
+
+            // when
+            taskService.delete(taskId);
+
+            // then
+            verify(taskRepository).deleteById(taskId);
+            verify(auditService).logAction(any(), any(), any(), any(), any());
+
+        }
+
+    }
+
 }
