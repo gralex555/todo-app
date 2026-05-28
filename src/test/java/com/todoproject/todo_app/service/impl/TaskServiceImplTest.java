@@ -1,5 +1,6 @@
 package com.todoproject.todo_app.service.impl;
 
+import com.todoproject.todo_app.dto.TaskRequestDTO;
 import com.todoproject.todo_app.dto.TaskResponseDTO;
 import com.todoproject.todo_app.entity.Task;
 import com.todoproject.todo_app.entity.User;
@@ -19,6 +20,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -131,6 +134,49 @@ class TaskServiceImplTest {
                     .isInstanceOf(AccessDeniedException.class);
         }
 
+    }
+
+    @Nested
+    @DisplayName("Метод create")
+    class CreateTests {
+
+        @Test
+        @DisplayName("возвращает DTO с правильными полями при создании задачи")
+        void shouldReturnDtoWhenTaskIsCreated() {
+            TaskRequestDTO requestDTO = new TaskRequestDTO();
+            requestDTO.setTitle("Купить хлеб");
+
+            Task taskFromMapper = new Task();
+            taskFromMapper.setTitle("Купить хлеб");
+
+            Task savedTask = new Task();
+            savedTask.setId(10L);
+            savedTask.setTitle("Купить хлеб");
+            savedTask.setOwner(currentUser);
+
+            TaskResponseDTO expectedDto = new TaskResponseDTO();
+            expectedDto.setId(10L);
+            expectedDto.setTitle("Купить хлеб");
+
+            when(userRepository.findByUsername("testuser"))
+                    .thenReturn(Optional.of(currentUser));
+            when(taskMapper.toEntity(requestDTO))
+                    .thenReturn(taskFromMapper);
+            when(taskRepository.save(taskFromMapper))
+                    .thenReturn(savedTask);
+            when(taskMapper.toResponseDTO(savedTask))
+                    .thenReturn(expectedDto);
+
+            // when
+            TaskResponseDTO result = taskService.create(requestDTO);
+
+            // then
+            assertThat(result).isNotNull();
+            assertThat(result.getId()).isEqualTo(10L);
+            assertThat(result.getTitle()).isEqualTo("Купить хлеб");
+            verify(auditService).logAction(any(), any(), any(), any(), any());
+
+        }
     }
 
 }
