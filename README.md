@@ -1,6 +1,8 @@
 # TODO App
 
-Учебный проект REST API для управления задачами с асинхронным аудитом действий пользователей.
+REST API для управления задачами с JWT-авторизацией и асинхронным аудитом действий пользователей.
+
+Учебный проект, на котором я отрабатывал работу со Spring Boot, Spring Security, Spring Data JPA, миграциями БД через Liquibase, асинхронной обработкой и тестированием.
 
 ## Технологический стек
 
@@ -24,6 +26,15 @@
 - Поиск задач по названию
 - Профили `dev` и `prod` с разными конфигурациями
 - Миграции БД через Liquibase
+
+## Тестирование
+
+- Unit-тесты сервисного слоя с использованием JUnit 5 + Mockito + AssertJ
+- Параметризованные тесты для проверки граничных случаев
+
+Запуск всех тестов:
+
+    ./mvnw test
 
 ## Архитектура асинхронного аудита
 
@@ -71,6 +82,6 @@
 | `SPRING_DATASOURCE_URL` | `jdbc:postgresql://localhost:5432/todo_db` | URL базы данных |
 | `SPRING_DATASOURCE_USERNAME` | `postgres` | Имя пользователя БД |
 | `SPRING_DATASOURCE_PASSWORD` | `postgres` | Пароль БД |
-| `JWT_SECRET` | учебный fallback | Секрет для подписи JWT (обязательно для prod!) |
+| `JWT_SECRET` | dev fallback | Секрет для подписи JWT (обязательно для prod!) |
 | `JWT_EXPIRATION` | 86400000 (24 ч) | Время жизни access token (мс) |
 | `JWT_REFRESH_EXPIRATION` | 604800000 (7 дн) | Время жизни refresh token (мс) |
