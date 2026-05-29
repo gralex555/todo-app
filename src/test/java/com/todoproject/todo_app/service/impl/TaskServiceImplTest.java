@@ -249,4 +249,104 @@ class TaskServiceImplTest {
 
     }
 
+    @Nested
+    @DisplayName("Метод update")
+    class updateTests {
+
+        @Test
+        @DisplayName("возвращает DTO, когда задача найдена и принадлежит текущему пользователю")
+        void shouldReturnDtoWhenTaskExistsAndBelongsToCurrentUser() {
+
+            Long taskId = 2L;
+
+            TaskRequestDTO requestDTO = new TaskRequestDTO();
+            requestDTO.setTitle("aa");
+            requestDTO.setDescription("bb");
+            requestDTO.setCompleted(false);
+
+            Task task = new Task();
+            task.setId(taskId);
+            task.setTitle("Купить овощи");
+            task.setOwner(currentUser);
+
+            Task updatedTask = new Task();
+            updatedTask.setId(taskId);
+            updatedTask.setTitle("Купить хлеб");
+            updatedTask.setOwner(currentUser);
+
+            TaskResponseDTO expectedDto = new TaskResponseDTO();
+            expectedDto.setId(taskId);
+            expectedDto.setTitle("Купить хлеб");
+
+            when(userRepository.findByUsername("testuser"))
+                    .thenReturn(Optional.of(currentUser));
+            when(taskRepository.findById(taskId))
+                    .thenReturn(Optional.of(task));
+            when(taskMapper.toResponseDTO(updatedTask))
+                    .thenReturn(expectedDto);
+            when(taskRepository.save(task)).thenReturn(updatedTask);
+
+            TaskResponseDTO result = taskService.update(taskId, requestDTO);
+
+            // then
+            assertThat(result).isNotNull();
+            assertThat(result.getId()).isEqualTo(taskId);
+            assertThat(result.getTitle()).isEqualTo("Купить хлеб");
+            verify(taskRepository).save(task);
+            verify(auditService).logAction(any(), any(), any(), any(), any());
+
+        }
+
+        @Test
+        @DisplayName("бросает TaskNotFoundException, когда задача не найдена")
+        void shouldThrowTaskNotFoundExceptionWhenTaskDoesNotExist() {
+            // given
+            Long nonExistentId = 998L;
+
+            TaskRequestDTO requestDTO = new TaskRequestDTO();
+            requestDTO.setTitle("a");
+            requestDTO.setDescription("b");
+            requestDTO.setCompleted(false);
+
+
+            when(userRepository.findByUsername("testuser"))
+                    .thenReturn(Optional.of(currentUser));
+            when(taskRepository.findById(nonExistentId))
+                    .thenReturn(Optional.empty());
+
+            // when & then
+            assertThatThrownBy(() -> taskService.update(nonExistentId, requestDTO))
+                    .isInstanceOf(TaskNotFoundException.class);
+
+        }
+
+        @Test
+        @DisplayName("бросает AccessDeniedException, когда задача принадлежит другому пользователю")
+        void shouldThrowAccessDeniedExceptionWhenTaskIsNotCurrentUser() {
+            User taskOwner = new User();
+            taskOwner.setId(2L);
+            Long taskId = 2L;
+
+            Task task = new Task();
+            task.setId(taskId);
+            task.setTitle("Купить овощи");
+            task.setOwner(taskOwner);
+
+            TaskRequestDTO requestDTO = new TaskRequestDTO();
+            requestDTO.setTitle("aa");
+            requestDTO.setDescription("bb");
+            requestDTO.setCompleted(false);
+
+
+            when(taskRepository.findById(taskId))
+                    .thenReturn(Optional.of(task));
+            when(userRepository.findByUsername("testuser"))
+                    .thenReturn(Optional.of(currentUser));
+
+            assertThatThrownBy(() -> taskService.update(taskId, requestDTO))
+                    .isInstanceOf(AccessDeniedException.class);
+        }
+
+    }
+
 }
