@@ -2,6 +2,7 @@ package com.todoproject.todo_app.service.impl;
 
 import com.todoproject.todo_app.dto.TaskRequestDTO;
 import com.todoproject.todo_app.dto.TaskResponseDTO;
+import com.todoproject.todo_app.entity.AuditAction;
 import com.todoproject.todo_app.entity.Task;
 import com.todoproject.todo_app.entity.User;
 import com.todoproject.todo_app.exception.TaskNotFoundException;
@@ -10,6 +11,7 @@ import com.todoproject.todo_app.repository.TaskRepository;
 import com.todoproject.todo_app.repository.UserRepository;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -176,6 +178,47 @@ class TaskServiceImplTest {
             assertThat(result.getTitle()).isEqualTo("Купить хлеб");
             verify(auditService).logAction(any(), any(), any(), any(), any());
 
+        }
+
+        @Test
+        @DisplayName("при создании задачи аудит вызывается с правильным действием и описанием")
+        void shouldCallAuditWithCorrectArgumentsWhenTaskIsCreated() {
+            TaskRequestDTO requestDTO = new TaskRequestDTO();
+            requestDTO.setTitle("Купить хлеб");
+
+            Task taskFromMapper = new Task();
+            taskFromMapper.setTitle("Купить хлеб");
+
+            Task savedTask = new Task();
+            savedTask.setId(10L);
+            savedTask.setTitle("Купить хлеб");
+            savedTask.setOwner(currentUser);
+
+            TaskResponseDTO expectedDto = new TaskResponseDTO();
+            expectedDto.setId(10L);
+
+            when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(currentUser));
+            when(taskMapper.toEntity(requestDTO)).thenReturn(taskFromMapper);
+            when(taskRepository.save(taskFromMapper)).thenReturn(savedTask);
+            when(taskMapper.toResponseDTO(savedTask)).thenReturn(expectedDto);
+
+            ArgumentCaptor<AuditAction> actionCaptor = ArgumentCaptor.forClass(AuditAction.class);
+            ArgumentCaptor<String> descriptionCaptor = ArgumentCaptor.forClass(String.class);
+
+            // when
+            taskService.create(requestDTO);
+
+            // then
+            verify(auditService).logAction(
+                    any(),
+                    actionCaptor.capture(),
+                    any(),
+                    any(),
+                    descriptionCaptor.capture()
+            );
+
+            assertThat(actionCaptor.getValue()).isEqualTo(AuditAction.CREATE_TASK);
+            assertThat(descriptionCaptor.getValue()).contains("Купить хлеб");
         }
     }
 
