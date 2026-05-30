@@ -2,7 +2,6 @@ package com.todoproject.todo_app.controller;
 
 import com.todoproject.todo_app.dto.TaskRequestDTO;
 import com.todoproject.todo_app.dto.TaskResponseDTO;
-import com.todoproject.todo_app.entity.Task;
 import com.todoproject.todo_app.service.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
