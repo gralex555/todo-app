@@ -29,7 +29,10 @@ REST API для управления задачами с JWT-авторизац�
 
 ## Тестирование
 
-Сервисный слой покрыт unit-тестами с использованием JUnit 5, Mockito и AssertJ.
+- Сервисный слой покрыт unit-тестами с использованием JUnit 5, Mockito и AssertJ.
+- Тестирование REST-эндпоинтов через @WebMvcTest и MockMvc
+  (12 тестов на TaskController, проверка статусов и JSON через jsonPath)
+- Подмена аутентификации через @WithMockUser для тестов защищённых эндпоинтов
 
 **Покрытие:**
 - `TaskServiceImpl` — 10 тестов на CRUD-операции (create, getById, update, delete)
