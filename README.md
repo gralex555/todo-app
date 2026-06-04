@@ -33,10 +33,13 @@ REST API для управления задачами с JWT-авторизац�
 - Тестирование REST-эндпоинтов через @WebMvcTest и MockMvc
   (12 тестов на TaskController, проверка статусов и JSON через jsonPath)
 - Подмена аутентификации через @WithMockUser для тестов защищённых эндпоинтов
+- Тестирование репозиториев через @DataJpaTest с in-memory H2
+    (5 тестов на TaskRepository, проверка производных запросов Spring Data)
+- TestEntityManager для подготовки данных в обход тестируемого репозитория
+- Отдельная конфигурация application-test.yaml для изоляции тестов
 
 **Покрытие:**
-- `TaskServiceImpl` — 10 тестов на CRUD-операции (create, getById, update, delete)
-- `StringUtils` — 17 параметризованных тестов на граничные случаи
+- 10 тестов на TaskServiceImpl + 17 на StringUtils + 12 на TaskController + 5 на TaskRepository
 
 **Применяемые техники:**
 - Структура given/when/then
