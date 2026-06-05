@@ -42,10 +42,19 @@ REST API для управления задачами с JWT-авторизац�
 - Hibernate ddl-auto: validate для проверки соответствия сущностей и миграций
 - @DynamicPropertySource для динамической настройки Spring под Docker-контейнер
 
-**Покрытие:**
-- 10 тестов на TaskServiceImpl + 17 на StringUtils + 12 на TaskController + 5 на TaskRepository
+## Покрытие
 
-**Применяемые техники:**
+**Всего 49 тестов** по всем слоям приложения:
+- 17 тестов на утилиты (StringUtils) — параметризованные тесты на JUnit 5 + AssertJ
+- 10 тестов на сервисы (TaskServiceImpl) — Mockito с проверкой позитивных и негативных сценариев
+- 12 тестов на контроллеры (TaskController) — @WebMvcTest с MockMvc
+- 5 тестов на репозитории с in-memory H2 — @DataJpaTest для быстрой проверки запросов
+- 5 интеграционных тестов с Testcontainers и реальной PostgreSQL — на той же СУБД, что в продакшене
+
+
+- **Применяемые техники:**
+
+
 - Структура given/when/then
 - Изоляция зависимостей через `@Mock` и `@InjectMocks`
 - Проверка возвращаемых значений через AssertJ (`assertThat`)
