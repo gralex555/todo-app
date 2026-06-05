@@ -36,6 +36,11 @@ REST API для управления задачами с JWT-авторизац�
     (5 тестов на TaskRepository, проверка производных запросов Spring Data)
 - TestEntityManager для подготовки данных в обход тестируемого репозитория
 - Отдельная конфигурация application-test.yaml для изоляции тестов
+- Интеграционные тесты с Testcontainers и реальной PostgreSQL
+  (5 тестов на TaskRepository, проверка на той же СУБД, что в продакшене)
+- Liquibase в тестах: прогон реальных миграций обеспечивает идентичность тестовой и продакшен-схемы
+- Hibernate ddl-auto: validate для проверки соответствия сущностей и миграций
+- @DynamicPropertySource для динамической настройки Spring под Docker-контейнер
 
 **Покрытие:**
 - 10 тестов на TaskServiceImpl + 17 на StringUtils + 12 на TaskController + 5 на TaskRepository
