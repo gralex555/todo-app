@@ -115,3 +115,29 @@ REST API для управления задачами с JWT-авторизац�
 | `JWT_SECRET` | dev fallback | Секрет для подписи JWT (обязательно для prod!) |
 | `JWT_EXPIRATION` | 86400000 (24 ч) | Время жизни access token (мс) |
 | `JWT_REFRESH_EXPIRATION` | 604800000 (7 дн) | Время жизни refresh token (мс) |
+
+## Запуск через Docker
+
+Приложение упаковано в Docker-контейнер. Для запуска нужны:
+- Docker Desktop (или Docker Engine на Linux)
+- Свободные порты 8080 и 5433
+
+Запуск всей инфраструктуры (приложение + PostgreSQL):
+
+    docker compose up
+
+Приложение будет доступно по адресу http://localhost:8080
+Swagger UI — http://localhost:8080/swagger-ui.html
+PostgreSQL — localhost:5433 (для отладки через любой SQL-клиент)
+
+Остановка:
+
+    docker compose down
+
+## Сборка Docker-образа
+
+Используется многоэтапная сборка (multi-stage build):
+- Этап сборки: eclipse-temurin:25-jdk + Maven для сборки jar
+- Этап запуска: eclipse-temurin:25-jre + готовый jar
+
+Это уменьшает размер образа и не требует Maven на машине развёртывания.
