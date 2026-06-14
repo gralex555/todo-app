@@ -2,6 +2,7 @@ package com.todoproject.todo_app.dto;
 
 import lombok.*;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @AllArgsConstructor
@@ -9,7 +10,7 @@ import java.time.LocalDateTime;
 @Builder
 @Setter
 @Getter
-public class TaskResponseDTO {  // отдаем клиенту
+public class TaskResponseDTO implements Serializable {
     private Long id;
     private String title;
     private String description;
