@@ -10,6 +10,8 @@ import com.todoproject.todo_app.repository.TaskRepository;
 import com.todoproject.todo_app.repository.UserRepository;
 import com.todoproject.todo_app.service.TaskService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -53,6 +55,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    @Cacheable(value = "tasks", key = "#id")
     public TaskResponseDTO getById(Long id) {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new TaskNotFoundException(id));
@@ -66,6 +69,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "tasks", key = "#id")
     public TaskResponseDTO update(Long id, TaskRequestDTO requestDTO) {
         User currentUser = getCurrentUser();
 
@@ -94,6 +98,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "tasks", key = "#id")
     public void delete(Long id) {
         User currentUser = getCurrentUser();
 
