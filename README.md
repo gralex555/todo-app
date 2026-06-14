@@ -77,6 +77,30 @@ REST API для управления задачами с JWT-авторизац�
 - Политика отказа: `CallerRunsPolicy`
 - Глобальный обработчик ошибок: `AsyncUncaughtExceptionHandler`
 
+## Кэширование (Redis)
+
+Для оптимизации чтения задач используется Redis в качестве кэша.
+
+### Конфигурация
+- Кэшируется метод `TaskService.getById(id)` через `@Cacheable("tasks")`
+- При `update` или `delete` ключ сбрасывается через `@CacheEvict`
+- TTL: 10 минут (автоматическая инвалидация)
+- Сериализация: JSON через Jackson 3
+
+
+### Запуск
+Redis запускается автоматически вместе с приложением:
+
+    docker compose up
+
+Контейнер `todo-redis` доступен на `localhost:6379` для отладки.
+
+### Просмотр кэша
+
+    docker exec -it todo-redis redis-cli
+    KEYS *
+    GET "tasks::1"
+
 ## Запуск локально
 
 ### Требования
