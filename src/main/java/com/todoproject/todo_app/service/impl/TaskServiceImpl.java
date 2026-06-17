@@ -1,9 +1,12 @@
 package com.todoproject.todo_app.service.impl;
-import com.todoproject.todo_app.entity.AuditAction;
 import com.todoproject.todo_app.dto.TaskRequestDTO;
 import com.todoproject.todo_app.dto.TaskResponseDTO;
 import com.todoproject.todo_app.entity.Task;
 import com.todoproject.todo_app.entity.User;
+import com.todoproject.todo_app.event.TaskCreatedEvent;
+import com.todoproject.todo_app.event.TaskDeletedEvent;
+import com.todoproject.todo_app.event.TaskEventProducer;
+import com.todoproject.todo_app.event.TaskUpdatedEvent;
 import com.todoproject.todo_app.exception.TaskNotFoundException;
 import com.todoproject.todo_app.mapper.TaskMapper;
 import com.todoproject.todo_app.repository.TaskRepository;
@@ -21,6 +24,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -31,6 +35,7 @@ public class TaskServiceImpl implements TaskService {
     private final UserRepository userRepository;
     private final TaskMapper taskMapper;
     private final AuditService auditService;
+    private final TaskEventProducer taskEventProducer;
 
     // ====================== CRUD ======================
 
@@ -43,13 +48,13 @@ public class TaskServiceImpl implements TaskService {
         task.setOwner(currentUser);
         Task savedTask = taskRepository.save(task);
 
-        auditService.logAction(
-                currentUser.getId(),
-                AuditAction.CREATE_TASK,
-                "Task",
-                savedTask.getId(),
-                "Создана задача: " + savedTask.getTitle()
-        );
+        TaskCreatedEvent event = TaskCreatedEvent.builder()
+                .taskId(savedTask.getId())
+                .userId(currentUser.getId())
+                .title(savedTask.getTitle())
+                .occurredAt(LocalDateTime.now())
+                .build();
+        taskEventProducer.sendTaskCreated(event);
 
         return taskMapper.toResponseDTO(savedTask);
     }
@@ -84,13 +89,13 @@ public class TaskServiceImpl implements TaskService {
         taskMapper.updateEntityFromDTO(requestDTO, task);
         Task updatedTask = taskRepository.save(task);
 
-        auditService.logAction(
-                currentUser.getId(),
-                AuditAction.UPDATE_TASK,
-                "Task",
-                updatedTask.getId(),
-                "Обновлена задача: " + updatedTask.getTitle()
-        );
+        TaskUpdatedEvent event = TaskUpdatedEvent.builder()
+                .taskId(updatedTask.getId())
+                .userId(currentUser.getId())
+                .title(updatedTask.getTitle())
+                .occurredAt(LocalDateTime.now())
+                .build();
+        taskEventProducer.sendTaskUpdated(event);
 
 
         return taskMapper.toResponseDTO(updatedTask);
@@ -115,13 +120,12 @@ public class TaskServiceImpl implements TaskService {
 
         taskRepository.deleteById(id);
 
-        auditService.logAction(
-                currentUser.getId(),
-                AuditAction.DELETE_TASK,
-                "Task",
-                taskId,
-                "Удалена задача: " + taskTitle
-        );
+        TaskDeletedEvent event = TaskDeletedEvent.builder()
+                .taskId(id)
+                .userId(currentUser.getId())
+                .occurredAt(LocalDateTime.now())
+                .build();
+        taskEventProducer.sendTaskDeleted(event);
     }
 
 
