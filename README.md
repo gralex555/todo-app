@@ -77,6 +77,51 @@ REST API для управления задачами с JWT-авторизац�
 - Политика отказа: `CallerRunsPolicy`
 - Глобальный обработчик ошибок: `AsyncUncaughtExceptionHandler`
 
+## Асинхронная обработка событий (Kafka)
+
+Для развязки бизнес-логики от вспомогательных процессов (аудит,
+будущие уведомления) используется Apache Kafka.
+
+### Архитектура
+
+`TaskService` после операций create/update/delete отправляет событие в
+Kafka топик `task-events`. `TaskEventConsumer` слушает топик и вызывает
+`AuditService` для записи в `audit_log`.
+
+`TaskService` не знает про `AuditService` — компоненты общаются
+только через события.
+
+### Типы событий
+
+- `TaskCreatedEvent` — создание задачи
+- `TaskUpdatedEvent` — обновление задачи
+- `TaskDeletedEvent` — удаление задачи
+
+Все события идут в один топик `task-events`. Ключ сообщения — `taskId`,
+поэтому события одной задачи попадают в одну партицию и читаются
+в строгом порядке.
+
+### Технологии
+
+- Spring Kafka 4 с поддержкой Jackson 3
+- JacksonJsonSerializer/JacksonJsonDeserializer для JSON-сериализации
+- Multi-type dispatch через @KafkaListener на классе + @KafkaHandler
+
+### Запуск
+
+Kafka и Zookeeper запускаются автоматически вместе с приложением:
+
+    docker compose up
+
+### Просмотр сообщений
+
+Подключиться к топику можно через консольный consumer:
+
+    docker exec -it todo-kafka kafka-console-consumer \
+      --bootstrap-server localhost:9092 \
+      --topic task-events \
+      --from-beginning
+
 ## Кэширование (Redis)
 
 Для оптимизации чтения задач используется Redis в качестве кэша.
