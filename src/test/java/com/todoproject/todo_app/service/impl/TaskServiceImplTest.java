@@ -5,6 +5,10 @@ import com.todoproject.todo_app.dto.TaskResponseDTO;
 import com.todoproject.todo_app.entity.AuditAction;
 import com.todoproject.todo_app.entity.Task;
 import com.todoproject.todo_app.entity.User;
+import com.todoproject.todo_app.event.TaskCreatedEvent;
+import com.todoproject.todo_app.event.TaskDeletedEvent;
+import com.todoproject.todo_app.event.TaskEventProducer;
+import com.todoproject.todo_app.event.TaskUpdatedEvent;
 import com.todoproject.todo_app.exception.TaskNotFoundException;
 import com.todoproject.todo_app.mapper.TaskMapper;
 import com.todoproject.todo_app.repository.TaskRepository;
@@ -40,6 +44,9 @@ class TaskServiceImplTest {
 
     @Mock
     private AuditService auditService;
+
+    @Mock
+    private TaskEventProducer taskEventProducer;
 
     @InjectMocks
     private TaskServiceImpl taskService;
@@ -176,7 +183,7 @@ class TaskServiceImplTest {
             assertThat(result).isNotNull();
             assertThat(result.getId()).isEqualTo(10L);
             assertThat(result.getTitle()).isEqualTo("Купить хлеб");
-            verify(auditService).logAction(any(), any(), any(), any(), any());
+            verify(taskEventProducer).sendTaskCreated(any(TaskCreatedEvent.class));
 
         }
 
@@ -202,23 +209,16 @@ class TaskServiceImplTest {
             when(taskRepository.save(taskFromMapper)).thenReturn(savedTask);
             when(taskMapper.toResponseDTO(savedTask)).thenReturn(expectedDto);
 
-            ArgumentCaptor<AuditAction> actionCaptor = ArgumentCaptor.forClass(AuditAction.class);
-            ArgumentCaptor<String> descriptionCaptor = ArgumentCaptor.forClass(String.class);
+            ArgumentCaptor<TaskCreatedEvent> eventCaptor = ArgumentCaptor.forClass(TaskCreatedEvent.class);
 
-            // when
             taskService.create(requestDTO);
 
             // then
-            verify(auditService).logAction(
-                    any(),
-                    actionCaptor.capture(),
-                    any(),
-                    any(),
-                    descriptionCaptor.capture()
-            );
+            verify(taskEventProducer).sendTaskCreated(eventCaptor.capture());
+            TaskCreatedEvent event = eventCaptor.getValue();
+            assertThat(event.getTitle()).isEqualTo("Купить хлеб");
+            assertThat(event.getTaskId()).isEqualTo(10L);
 
-            assertThat(actionCaptor.getValue()).isEqualTo(AuditAction.CREATE_TASK);
-            assertThat(descriptionCaptor.getValue()).contains("Купить хлеб");
         }
     }
 
@@ -286,7 +286,7 @@ class TaskServiceImplTest {
 
             // then
             verify(taskRepository).deleteById(taskId);
-            verify(auditService).logAction(any(), any(), any(), any(), any());
+            verify(taskEventProducer).sendTaskDeleted(any(TaskDeletedEvent.class));
 
         }
 
@@ -336,7 +336,7 @@ class TaskServiceImplTest {
             assertThat(result.getId()).isEqualTo(taskId);
             assertThat(result.getTitle()).isEqualTo("Купить хлеб");
             verify(taskRepository).save(task);
-            verify(auditService).logAction(any(), any(), any(), any(), any());
+            verify(taskEventProducer).sendTaskUpdated(any(TaskUpdatedEvent.class));
 
         }
 
