@@ -36,6 +36,7 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/swagger-ui.html"
                         ).permitAll()   // разрешаю swagger
+                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                         .anyRequest().authenticated()                 // Все остальные запросы требуют аутентификации
                 )
 
