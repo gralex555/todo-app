@@ -269,3 +269,72 @@ Kafka в тестах замокана через @MockitoBean.
 
 Образ собирается только при push в main (после merge PR). На PR
 выполняются только тесты — образы с feature-веток не публикуются.
+
+## Мониторинг (Prometheus + Grafana)
+
+Приложение экспортирует метрики через **Spring Boot Actuator + Micrometer**.
+**Prometheus** периодически собирает метрики, **Grafana** визуализирует их
+на дашбордах.
+
+### Архитектура
+
+```
+Spring Boot (todo-app)
+    └─ /actuator/prometheus  ← метрики в формате Prometheus
+         ↑
+Prometheus (scrape каждые 15с, хранит TSDB)
+         ↑
+Grafana (дашборды с графиками)
+```
+
+### Что собирается
+
+Стандартные метрики JVM и Spring Boot, включая:
+
+- **JVM**: heap/non-heap память, GC, потоки, uptime
+- **HTTP-запросы**: количество, время ответа, статус-коды
+- **HikariCP**: пул соединений с БД (active/idle/pending)
+- **Redis, Kafka**: метрики клиентов
+- **Executor**: пулы потоков и очереди задач
+
+### Технологии
+
+- **Spring Boot Actuator** — HTTP-эндпоинты для мониторинга
+- **Micrometer** — абстракция для сбора метрик (фасад над системами мониторинга)
+- **micrometer-registry-prometheus** — экспорт метрик в формате Prometheus
+- **Prometheus** — сбор и хранение (TSDB, pull-модель)
+- **Grafana** — визуализация
+
+### Безопасность
+
+- `/actuator/health` — открыт (для Kubernetes liveness/readiness probes)
+- `/actuator/prometheus` — открыт (для scrape в локальной сети)
+- Остальные Actuator-эндпоинты защищены JWT
+
+В production `/actuator/prometheus` рекомендуется защищать через Basic Auth
+или сетевые ограничения (доступ только из внутренней сети).
+
+### Endpoints
+
+| URL | Назначение |
+|-----|-----------|
+| `http://localhost:8080/actuator/health` | Статус приложения (для probes) |
+| `http://localhost:8080/actuator/prometheus` | Метрики в формате Prometheus |
+| `http://localhost:9090` | Prometheus UI |
+| `http://localhost:3000` | Grafana UI (`admin` / `admin`) |
+
+### Запуск
+
+Prometheus и Grafana поднимаются автоматически вместе с приложением:
+
+    docker compose up
+
+### Настройка Grafana (первый запуск)
+
+1. Открыть `http://localhost:3000`, войти как `admin` / `admin`
+2. Добавить Data Source: **Prometheus** → URL `http://prometheus:9090`
+3. Импортировать дашборд: **Dashboards → New → Import** → ID `4701`
+   (JVM Micrometer)
+4. Выбрать в дашборде: **Application** = `todo-app`
+
+Дашборд покажет живые метрики JVM, GC, потоков, HikariCP.
