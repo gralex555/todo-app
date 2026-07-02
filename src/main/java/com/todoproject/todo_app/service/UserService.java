@@ -4,11 +4,17 @@ import com.todoproject.todo_app.dto.AuthResponseDTO;
 import com.todoproject.todo_app.dto.LoginRequestDTO;
 import com.todoproject.todo_app.dto.RegisterRequestDTO;
 import com.todoproject.todo_app.entity.User;
-
+/**
+ * user service
+ */
 public interface UserService {
 
+    /**
+     * Register and save user
+     * @param requestDTO this DTO with important information
+     * @return updated user response
+     */
 
-     // Регистрация нового пользователя
     AuthResponseDTO register(RegisterRequestDTO requestDTO);
 
      // Аутентификация пользователя (логин)

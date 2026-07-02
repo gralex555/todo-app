@@ -37,6 +37,7 @@ public class SecurityConfig {
                                 "/swagger-ui.html"
                         ).permitAll()   // разрешаю swagger
                         .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                        .requestMatchers("/actuator/prometheus").permitAll()
                         .anyRequest().authenticated()                 // Все остальные запросы требуют аутентификации
                 )
 

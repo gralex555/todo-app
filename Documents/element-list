@@ -1,0 +1,13 @@
+com.todoproject.todo_app
+com.todoproject.todo_app.config
+com.todoproject.todo_app.controller
+com.todoproject.todo_app.dto
+com.todoproject.todo_app.entity
+com.todoproject.todo_app.event
+com.todoproject.todo_app.exception
+com.todoproject.todo_app.mapper
+com.todoproject.todo_app.repository
+com.todoproject.todo_app.security
+com.todoproject.todo_app.service
+com.todoproject.todo_app.service.impl
+com.todoproject.todo_app.util
