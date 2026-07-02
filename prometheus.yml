@@ -1,0 +1,9 @@
+global:
+  scrape_interval: 15s        # как часто Prometheus скрапит все таргеты
+  evaluation_interval: 15s    # как часто проверяет правила алертов
+
+scrape_configs:
+  - job_name: 'todo-app'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['app:8080']
